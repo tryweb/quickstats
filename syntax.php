@@ -1,13 +1,12 @@
 <?php
-/**  
- * 
+/**
+ *
  * @license    GPL 2 (http://www.gnu.org/licenses/gpl.html)
  * @author    Myron Turner <turnermm02@shaw.ca>
  */
 
 if(!defined('DOKU_INC')) define('DOKU_INC',realpath(dirname(__FILE__).'/../../').'/');
 if(!defined('DOKU_PLUGIN')) define('DOKU_PLUGIN',DOKU_INC.'lib/plugins/');
-require_once(DOKU_PLUGIN.'syntax.php');
 if(!defined('QUICK_STATS')) define ('QUICK_STATS',DOKU_PLUGIN . 'quickstats/');
 
 //require_once('GEOIP/ccArraysDat.php');
@@ -24,39 +23,39 @@ class syntax_plugin_quickstats extends DokuWiki_Syntax_Plugin {
     private $misc_data_file;
     private $pages;
     private $ips;
-    private $misc_data;    
+    private $misc_data;
     private $cc_arrays;
     private $long_names =-1;
     private $show_date;
     private $ua_file;
     private $ua_data;
     private $giCity;
-    private $SEP = '/';    
+    private $SEP = '/';
     private $helper;
-    
+
     function __construct() {
-        
+
         $this->long_names = $this->getConf('long_names');
         if(!isset($this->long_names)  || $this->long_names <= 0) $this->long_names = false;
         $this->show_date=$this->getConf('show_date');
-        if( preg_match('/WINNT/i',  PHP_OS) ) {    
-            $this->SEP='\\';                
+        if( preg_match('/WINNT/i',  PHP_OS) ) {
+            $this->SEP='\\';
         }
         $this->helper =  & plugin_load('helper', 'quickstats');
         $this->cc_arrays = $this->helper->get_cc_arrays();
     }
 
    /**
-    * Get an associative array with plugin info.    
+    * Get an associative array with plugin info.
     */
     function getInfo(){
         $pname = $this->getPluginName();
         $info  = DOKU_PLUGIN.'/'.$pname.'/plugin.info.txt';
-     
+
         if(@file_exists($info))  {
               return parent::getInfo();
-        }   
-     
+        }
+
         return array(
             'author' => 'Myron Turner',
             'email'  => 'turnermm02@shaw.ca',
@@ -68,22 +67,22 @@ class syntax_plugin_quickstats extends DokuWiki_Syntax_Plugin {
     }
 
    /**
-    * Get the type of syntax this plugin defines. 
+    * Get the type of syntax this plugin defines.
     */
     function getType(){
         return 'substition';
     }
-    
+
     /**
      * What kind of syntax do we allow (optional)
      */
 //    function getAllowedTypes() {
 //        return array();
 //    }
-   
+
    /**
     * Define how this plugin is handled regarding paragraphs.
-    *   
+    *
     * normal:  The plugin can be used inside paragraphs.
     * block: Open paragraphs need to be closed before plugin output.
     * stack  (Special case): Plugin wraps other paragraphs.
@@ -94,7 +93,7 @@ class syntax_plugin_quickstats extends DokuWiki_Syntax_Plugin {
 
    /**
     * Where to sort in?
-    *  
+    *
     */
     function getSort(){
         return 100;
@@ -112,7 +111,7 @@ class syntax_plugin_quickstats extends DokuWiki_Syntax_Plugin {
     function connectTo($mode) {
       $this->Lexer->addSpecialPattern('~~QUICKSTATS:.*?~~',$mode,'plugin_quickstats');
     }
-    
+
 //    function postConnect() {
 //      $this->Lexer->addExitPattern('</TEST>','plugin_quickstats');
 //    }
@@ -126,32 +125,32 @@ class syntax_plugin_quickstats extends DokuWiki_Syntax_Plugin {
        global $ID;
         $this->helper->writeCache($ID);
         switch ($state) {
-          case DOKU_LEXER_SPECIAL :                     
-            $match =  trim(substr($match,13,-2));            
+          case DOKU_LEXER_SPECIAL :
+            $match =  trim(substr($match,13,-2));
             if($match) {
                 if($match == "total") {
                      return array('total',"","");
                 }
                 $depth = false;
                 if(strpos($match,';;') !== false) {
-                      list($match,$depth) = explode(';;',$match);                
+                      list($match,$depth) = explode(';;',$match);
                 }
-                
+
                  $date = "";
-                 if(strpos($match,'&') !== false) {        
-                 
-                         /* 
-                             catch syntax errors             
-                             assumes single parameter with trailing or prepended & 
+                 if(strpos($match,'&') !== false) {
+
+                         /*
+                             catch syntax errors
+                             assumes single parameter with trailing or prepended &
                          */
-                         if($match[strlen($match)-1] == '&'  || $match[0]  == '&') { 
+                         if($match[strlen($match)-1] == '&'  || $match[0]  == '&') {
                              $match = trim($match,'&');
                               if($this->is_date_string($match)) {
-                                   return array('basics',$match,$depth);                   
+                                   return array('basics',$match,$depth);
                               }
-                             return array('basics',"",$depth);                   
+                             return array('basics',"",$depth);
                          }
-                         
+
                          /* process valid paramter string */
                          list($m1,$m2) = explode('&',$match,2);
                          if($this->is_date_string($m1)) {
@@ -165,13 +164,13 @@ class syntax_plugin_quickstats extends DokuWiki_Syntax_Plugin {
                  }
                  else  if($this->is_date_string($match)) {
                      $date = $match;
-                     $match = 'basics';                     
+                     $match = 'basics';
                  }
             }
             else {
-                   return array('basics',"",$depth);                   
-            }            
-             
+                   return array('basics',"",$depth);
+            }
+
              return array(strtolower($match),$date,$depth);
              break;
         }
@@ -180,15 +179,15 @@ class syntax_plugin_quickstats extends DokuWiki_Syntax_Plugin {
 
     function is_date_string($str) {
          return preg_match('/\d+_\d\d\d/',$str);
-    }    
-    
+    }
+
    /**
-    * Handle the actual output creation.    
+    * Handle the actual output creation.
     */
     function render($mode, Doku_Renderer $renderer, $data) {
-     
+
         if($mode == 'xhtml'){
-           
+
            list($which, $date_str,$depth) = $data;
            if($which == 'total') {
                $renderer->doc .= "<span class = 'quick-total'>" . $this->getTotal() ."</span>";
@@ -198,21 +197,21 @@ class syntax_plugin_quickstats extends DokuWiki_Syntax_Plugin {
            if($depth) {
                $this->row_depth($depth);
               }
-                        
+
            $this->load_data($date_str,$which);
            if($which == 'basics') {
-                $renderer->doc .= "<div class='quickstats basics' style='margin: auto;width: 920px;'>" ;                  
+                $renderer->doc .= "<div class='quickstats basics' style='margin: auto;width: 920px;'>" ;
            }
            else {
                 $class = "quickstats $which";
                 $renderer->doc .= "<div class='$class'>";
            }
             switch ($which) {
-               case 'basics':               
+               case 'basics':
                 $this->misc_data_xhtml($renderer);
                 $this->pages_xhtml($renderer);
                 break;
-            case 'ip':              
+            case 'ip':
                 $this->ip_xhtml($renderer);
                    break;
             case 'pages':
@@ -223,32 +222,32 @@ class syntax_plugin_quickstats extends DokuWiki_Syntax_Plugin {
                 break;
             case 'countries':
                 $this->misc_data_xhtml($renderer,true,'country');
-                break;    
+                break;
             case 'ua':
                 $this->ua_xhtml($renderer);
-                break;            
+                break;
             }
-        
-           $renderer->doc .= "</div>" ;              
-             
+
+           $renderer->doc .= "</div>" ;
+
 
             return true;
         }
         return false;
     }
-    
+
 
     function sort(&$array) {
         if(!isset($array)) {
             $array = array();
             return;
-        }   
+        }
         uasort($array, 'QuickStatsCmp');
-    }   
+    }
 
     function extended_row($num="&nbsp;", $cells, $styles="") {
         $style = "";
-        if($styles)  $style = "style = '$styles' "; 
+        if($styles)  $style = "style = '$styles' ";
         $row = "<tr><td  $style >$num&nbsp;&nbsp;</td>";
         foreach($cells as $cell_data) {
             $row .= "<td  $style >$cell_data</td>";
@@ -256,27 +255,27 @@ class syntax_plugin_quickstats extends DokuWiki_Syntax_Plugin {
         $row .= '</tr>';
         return $row;
     }
-    
-    function row($name,$val,$num="&nbsp;",$date=false,$is_ip=false) {        
+
+    function row($name,$val,$num="&nbsp;",$date=false,$is_ip=false) {
         $title = "";
         $ns = $name;
-        if($is_ip  && $this->giCity) { 
-            $record = geoip_record_by_addr($this->giCity, $name);             
-            $title = $record->country_name;      
-            if(isset($this->ua_data[$name])) {            
+        if($is_ip  && $this->giCity) {
+            $record = geoip_record_by_addr($this->giCity, $name);
+            $title = $record->country_name;
+            if(isset($this->ua_data[$name])) {
             $title .= ' (' . $this->ua_data[$name][1] .')';
             }
         }
 
-        elseif($this->long_names && (@strlen($name) > $this->long_names)) {        
-            $title = "$name";              
+        elseif($this->long_names && (@strlen($name) > $this->long_names)) {
+            $title = "$name";
             $name = substr($name,0,$this->long_names) . '...';
         }
         if($date) {
-            $date = date('r',$date);                      
-            $title = "$title $date";                      
+            $date = date('r',$date);
+            $title = "$title $date";
         }
-        
+
         if($title && $is_ip) {
                 $name = "<a href='javascript:void 0;' title = '$title'>$name</a>";
         }
@@ -287,22 +286,22 @@ class syntax_plugin_quickstats extends DokuWiki_Syntax_Plugin {
              $name = "<a href='javascript:void 0;' title = '$title'>$name</a>";
         }
         return "<tr><td>$num&nbsp;&nbsp;</td><td>$name</td><td>&nbsp;&nbsp;&nbsp;&nbsp;$val</td></tr>\n";
-       
-    }    
+
+    }
 
     function row_depth($new_depth=false) {
         STATIC $depth = false;
-        
+
         if($new_depth !== false) {
             $depth = $new_depth;
             return;
         }
-        
-        return $depth;        
+
+        return $depth;
     }
-   
+
     function load_data($date_str=null,$which) {
-        global $uasort_ip; 
+        global $uasort_ip;
         $today = getdate();
         if($date_str) {
            list($mon,$yr) = explode('_',$date_str);
@@ -310,12 +309,12 @@ class syntax_plugin_quickstats extends DokuWiki_Syntax_Plugin {
            $today['year'] = $yr;
         }
         $ns_prefix = "quickstats:";
-        $ns =  $ns_prefix . $today['mon'] . '_'  . $today['year'] . ':';         
-        $this->page_file = metaFN($ns . 'pages' ,'.ser');  
-        $this->ip_file = metaFN($ns . 'ip' , '.ser');  
-        $this->misc_data_file = metaFN($ns . 'misc_data' , '.ser');  
-        $this->ua_file = metaFN($ns . 'ua' , '.ser');  
-    
+        $ns =  $ns_prefix . $today['mon'] . '_'  . $today['year'] . ':';
+        $this->page_file = metaFN($ns . 'pages' ,'.ser');
+        $this->ip_file = metaFN($ns . 'ip' , '.ser');
+        $this->misc_data_file = metaFN($ns . 'misc_data' , '.ser');
+        $this->ua_file = metaFN($ns . 'ua' , '.ser');
+
         if($which == 'basics' || $which == 'pages') {
             $this->pages = unserialize(io_readFile($this->page_file,false));
             if(!$this->pages) $this->pages = array();
@@ -340,38 +339,38 @@ class syntax_plugin_quickstats extends DokuWiki_Syntax_Plugin {
                 if(!$uasort_ip) $uasort_ip = array();
             }
         }
-    
+
     }
-    
+
     function geoipcity_ini() {
-    
+
          if($this->getConf('geoplugin')) {
             return;
          }
         require_once("GEOIP/geoipcity.inc");
-        if($this->getConf('geoip_local') && file_exists(QUICK_STATS. 'GEOIP/GeoLiteCity.dat')) {            
-             $this->giCity = geoip_open(QUICK_STATS. 'GEOIP/GeoLiteCity.dat',GEOIP_STANDARD);        
+        if($this->getConf('geoip_local') && file_exists(QUICK_STATS. 'GEOIP/GeoLiteCity.dat')) {
+             $this->giCity = geoip_open(QUICK_STATS. 'GEOIP/GeoLiteCity.dat',GEOIP_STANDARD);
         }
         else {
-            $gcity_dir = $this->getConf('geoip_dir');                
-            $gcity_dat=rtrim($gcity_dir, "\040,/\\") . $this->SEP  . 'GeoLiteCity.dat';                                   
+            $gcity_dir = $this->getConf('geoip_dir');
+            $gcity_dat=rtrim($gcity_dir, "\040,/\\") . $this->SEP  . 'GeoLiteCity.dat';
             if(!file_exists( $gcity_dat)) return;
             $this->giCity = geoip_open($gcity_dat,GEOIP_STANDARD);
-        }        
+        }
     }
-    
+
     function table($data,&$renderer,$numbers=true,$date=false,$ip_array=false) {
-    
-        if($numbers !== false) 
+
+        if($numbers !== false)
            $num = 0;
          else  $num = "&nbsp;";
-  
+
        if($ip_array) $this->geoipcity_ini();
-  
+
        $ttl = 0;
        $depth = $this->row_depth();
        if($depth == 'all') $depth = 0;
-       
+
         if($ip_array) {
              $this->theader($renderer, 'IP');
         }
@@ -379,19 +378,19 @@ class syntax_plugin_quickstats extends DokuWiki_Syntax_Plugin {
             $this->theader($renderer, 'Page');
         }
         else  $renderer->doc .= "<table cellspacing='4'>\n";
-        foreach($data as $item=>$count) {               
+        foreach($data as $item=>$count) {
             if($numbers) $num++;
             $ttl += $count;
-            if($depth  && $num > $depth) continue;      
+            if($depth  && $num > $depth) continue;
             $md5 =md5($item);
-            $date_str = (is_array($date) &&  isset($date[$md5]) ) ? $date[$md5] : false;                 
+            $date_str = (is_array($date) &&  isset($date[$md5]) ) ? $date[$md5] : false;
             $renderer->doc .= $this->row($item,$count,$num,$date_str, $ip_array);
         }
        $renderer->doc .= "</table>\n";
        return $ttl;
     }
-    
-    function theader(&$renderer,$name,$accesses='Accesses',$num="&nbsp;Num&nbsp;",$other="") {         
+
+    function theader(&$renderer,$name,$accesses='Accesses',$num="&nbsp;Num&nbsp;",$other="") {
          if($accesses=='Accesses') $accesses=$this->getLang('accesses');
          $renderer->doc .= "<table cellspacing='4' class='sortable'>\n";
          $js = "<a href='javascript:void 0;' title='sort' class='quickstats_sort_title'>";
@@ -402,26 +401,26 @@ class syntax_plugin_quickstats extends DokuWiki_Syntax_Plugin {
          if($other) {
                $other = $js . $other .  '</a>';
                $renderer->doc .= '<th class="quickstats_sort">'. $other . '</th>';
-         }          
+         }
          $renderer->doc .='</tr>';
     }
-    
+
     function ip_xhtml(&$renderer) {
-       $uniq = $this->ips['uniq'];         
+       $uniq = $this->ips['uniq'];
        unset($this->ips['uniq']);
        $this->sort($this->ips);
-     
+
     //  $renderer->doc .= '<div class="quickstats ip">';
        $renderer->doc .= '<span class="title">' .$this->getLang('uniq_ip') .'</span>';
-       $total_accesses = $this->table($this->ips,$renderer,true,true,true);    
-       $renderer->doc .= "<span class='total'>" .$this->getLang('ttl_accesses') . "$total_accesses</span></br>\n"; 
-       $renderer->doc .= "<span class='total'>" .$this->getLang('ttl_uniq_ip') ."$uniq</span></br>\n";  
+       $total_accesses = $this->table($this->ips,$renderer,true,true,true);
+       $renderer->doc .= "<span class='total'>" .$this->getLang('ttl_accesses') . "$total_accesses</span></br>\n";
+       $renderer->doc .= "<span class='total'>" .$this->getLang('ttl_uniq_ip') ."$uniq</span></br>\n";
       // $renderer->doc .= "</div>\n";
-    }  
-    
-    function pages_xhtml(&$renderer, $no_align=false) {         
-        
-        if(!$this->pages) return array();            
+    }
+
+    function pages_xhtml(&$renderer, $no_align=false) {
+
+        if(!$this->pages) return array();
 
             $this->sort($this->pages['page']);
             if($no_align) {
@@ -432,61 +431,61 @@ class syntax_plugin_quickstats extends DokuWiki_Syntax_Plugin {
                 $renderer->doc .= '<div   class="pages_basics"  style="overflow:auto;">';
                 }
             $renderer->doc .= '<span class="title">'. $this->getLang('label_page_access') .'</span>';
-            
+
             $date =($this->show_date && isset($this->pages['date'] )) ? $this->pages['date'] : false;
             $page_count = $this->table($this->pages['page'],$renderer,true,$date);
             $renderer->doc .=  "<span class='total'>" . $this->getLang('pages_accessed')  . count($this->pages['page']) . "</span><br />";
             $renderer->doc .=  "<span class='total'>". $this->getLang('ttl_accesses')  . $this->pages['site_total'] .'</span>';
             $renderer->doc .= "</div>\n";
-        
+
     }
     function misc_data_xhtml(&$renderer,$no_align=false,$which='all') {
-        
+
        $renderer->doc .= "\n";
-    
+
        if($which == 'all' || $which == 'misc') {
-       
+
             $browsers = $this->misc_data['browser'];
             $platform = $this->misc_data['platform'];
             $version = $this->misc_data['version'];
             $this->sort($browsers);
             $this->sort($platform);
-            $this->sort($version);   
-            
-              $renderer->doc .= "\n\n<!-- start misc -->\n";
+            $this->sort($version);
+
+              $renderer->doc .= "\n\n\n";
                if($no_align) {
                     $renderer->doc .= '<div class="qs_noalign">';
                }
               else {
                     //$renderer->doc .= '<div style="float:left;width: 200px; margin-left:20px;">';
                     $renderer->doc .= '<div class="browsers_basics"  style="float:left;">';
-                }    
+                }
                 $renderer->doc .="\n\n";
                 $renderer->doc .= '<br /><span class="title">' . $this->getLang('browsers') .'</span>';
-                
+
                 $num=0;
                 $renderer->doc .= "<table border='0' >\n";
-                foreach($browsers as $browser=>$val) {                             
+                foreach($browsers as $browser=>$val) {
                    $num++;
                    $renderer->doc .= $this->row($browser, $val,$num);
                    $renderer->doc .= "<tr><td colspan='3' style='border-top: 1px solid black'>";
-                   $v = $this->get_subversions($browser,$version);                            
+                   $v = $this->get_subversions($browser,$version);
                    $this->table($v,$renderer, false,false);
                    $renderer->doc .= '</td></tr>';
                 }
-               $renderer->doc .= "</table>\n\n";       
-        
-          
-            $renderer->doc .= '<span class="title">Platforms</span>';        
-            $this->table($platform,$renderer);                
-            $renderer->doc .= "</div>\n<!--end misc -->\n\n";
+               $renderer->doc .= "</table>\n\n";
+
+
+            $renderer->doc .= '<span class="title">Platforms</span>';
+            $this->table($platform,$renderer);
+            $renderer->doc .= "</div>\n\n\n";
        }
-       
+
         if($which == 'misc') return;
-        
+
         $countries = $this->misc_data['country'];
         $this->sort($countries);
-        
+
             if($no_align) {
                     $renderer->doc .= '<div>';
             }
@@ -498,13 +497,13 @@ class syntax_plugin_quickstats extends DokuWiki_Syntax_Plugin {
                 $this->theader($renderer,  $this->getLang('country') );
                 $num = 0;
                 $total = 0;
-                $depth = $this->row_depth();        
+                $depth = $this->row_depth();
                 if($depth == 'all') $depth = false;
-            
-                foreach($countries as $cc=>$count) {        
+
+                foreach($countries as $cc=>$count) {
                     if(!$cc) continue;
                      $num++;
-                     $total+=$count;                    
+                     $total+=$count;
                      $cntry=$this->cc_arrays->get_country_name($cc) ;
                      if($depth == false)  {
                          $renderer->doc .= $this->row($cntry,$count,$num);
@@ -513,34 +512,34 @@ class syntax_plugin_quickstats extends DokuWiki_Syntax_Plugin {
                           $renderer->doc .= $this->row($cntry,$count,$num);
                      }
                 }
-              $renderer->doc .= '</table>';         
+              $renderer->doc .= '</table>';
               $renderer->doc .= "<span class='total'>" .$this->getLang('ttl_countries') . count($this->misc_data['country'])  . "</span></br>";
-              
+
               $renderer->doc .= "<span class='total'>" . $this->getLang('ttl_accesses') ."$total</span></br>";
-              
-          
+
+
              $renderer->doc .= "</div>\n";
-         
-        
-    } 
-    
+
+
+    }
+
     function getTotal() {
-       $meta_path = $this->helper->metaFilePath(true) ;     
+       $meta_path = $this->helper->metaFilePath(true) ;
        $page_totals = unserialize(io_readFile($meta_path .  'page_totals.ser'));
        $page_accessesTotal = 0;
        if(!$page_totals) $page_totals = array();
-       if(!empty($page_totals)) {           
+       if(!empty($page_totals)) {
            foreach($page_totals as $ttl) {
-              $page_accessesTotal+=$ttl;            
-           }  
-       }   
-       return $page_accessesTotal;    
-    }    
-    
+              $page_accessesTotal+=$ttl;
+           }
+       }
+       return $page_accessesTotal;
+    }
+
     function get_subversions($a,$b) {
         $tmp = array();
-    
-         foreach($b as $key=>$val) {    
+
+         foreach($b as $key=>$val) {
             if(strpos($key,$a) !== false) {
                 $tmp[$key] = $val;
             }
@@ -549,72 +548,72 @@ class syntax_plugin_quickstats extends DokuWiki_Syntax_Plugin {
        return  $tmp;
     }
 
-    /*  this sorts ua array by ip accesses 
-     *  the keys to both ua and ip arrays are the ip addresses     
-     *  $a and $b in ua_Cmp($a,$b) are ip addresses, so $uasort_ip[$a] = number of accesses for ip $a
+    /* this sorts ua array by ip accesses
+     * the keys to both ua and ip arrays are the ip addresses
+     * $a and $b in ua_Cmp($a,$b) are ip addresses, so $uasort_ip[$a] = number of accesses for ip $a
     */
     function ua_sort(&$array) {
      global $uasort_ip;
-    
-       
+
+
        function ua_Cmp($a, $b) {
-            global $uasort_ip; 
-        
+            global $uasort_ip;
+
             $na = $uasort_ip[$a];
             $nb = $uasort_ip[$b];
-            
-           if ($na == $nb) {            
+
+           if ($na == $nb) {
                 return 0;
             }
             return ($na > $nb) ? -1 : 1;
-            
+
          }
-       
-       uksort($array, 'ua_Cmp');    
+
+       uksort($array, 'ua_Cmp');
     }
-  
-   
-    function ua_xhtml(&$renderer) {                
+
+
+    function ua_xhtml(&$renderer) {
                 global $uasort_ip;   // sorted IP=>acceses
-                
-                $depth = $this->row_depth();                        
+
+                $depth = $this->row_depth();
                 if($depth == 'all') $depth = false;
                 $asize = count($this->ua_data);
                 if($depth !== false) {
-                        $this->ua_sort($this->ua_data);    
+                        $this->ua_sort($this->ua_data);
                         if($depth > $asize) $depth = $asize;
                         $header = " ($depth/$asize) ";
                 }
-                else {                   
+                else {
                     $header = " ($asize/$asize) ";
-                }    
+                }
                 $total_accesses = $this->ua_data['counts'] ;
-                unset($this->ua_data['counts']); 
+                unset($this->ua_data['counts']);
                 $renderer->doc .="\n\n<div class=ip_data>\n";
                 $styles = " padding-bottom: 4px; ";
                 $renderer->doc .= '<br /><span class="title">'. $this->getLang('browsers_and_ua') . $header   .'</span>';
                 $n = 0;
-               $this->theader($renderer,'IP', $this->getLang('country'),"&nbsp;" . $this->getLang('accesses'). "&nbsp;", "&nbsp;User Agents&nbsp;");        
-                foreach($this->ua_data as $ip=>$data) {     
+               $this->theader($renderer,'IP', $this->getLang('country'),"&nbsp;" . $this->getLang('accesses'). "&nbsp;", "&nbsp;User Agents&nbsp;");
+                foreach($this->ua_data as $ip=>$data) {
                     $n++;
-                    if($depth !== false && $n > $depth) break;                     
+                    if($depth !== false && $n > $depth) break;
                     $cc = array_shift($data);
                     $country=$this->cc_arrays->get_country_name($cc) ;
                     $uas = '&nbsp;&nbsp;&nbsp;&nbsp;' . implode(',&nbsp;',$data);
                     $renderer->doc .=  $this->extended_row($uasort_ip[$ip], array($ip, "&nbsp;&nbsp;$country",$uas), $styles);
                 }
-               $renderer->doc .= "</table>\n";    
-               
+               $renderer->doc .= "</table>\n";
+
                 // Output total table
               $renderer->doc .= '<br /><span class="title">' . $this->getLang('ttl_accesses_ua') .'</span><br />';
                $n=0;
-               $this->theader($renderer,"&nbsp;&nbsp;&nbsp;&nbsp;Agents&nbsp;&nbsp;&nbsp;&nbsp;");               
-               foreach($total_accesses as $agt=>$cnt) {    
-                  $n++;               
-                  if($depth !== false && $n > $depth) continue;                     
+               $this->theader($renderer,"&nbsp;&nbsp;&nbsp;&nbsp;Agents&nbsp;&nbsp;&nbsp;&nbsp;");
+               foreach($total_accesses as $agt=>$cnt) {
+                  $n++;
+                  if($depth !== false && $n > $depth) continue;
                   $renderer->doc .= "<tr><td>$n</td><td>$agt&nbsp;</td><td>&nbsp;&nbsp;$cnt</td>\n";
                }
-              $renderer->doc .= "</table></div>\n\n";    
+              $renderer->doc .= "</table></div>\n\n";
     }
 }
 
