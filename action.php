@@ -384,7 +384,7 @@ class action_plugin_quickstats extends DokuWiki_Action_Plugin {
 
 
     /**
-     * adds new data to stats files  
+     * adds new data to stats files
      *
      * @author  Myron Turner <turnermm02@shaw.ca>
      */
@@ -393,15 +393,15 @@ class action_plugin_quickstats extends DokuWiki_Action_Plugin {
     global $ACT;
     $xclpages = trim($this->getConf('xcl_pages'));
     $xclpages = str_replace(',','|',$xclpages);
-    $xclpages = str_replace('::', ':.*?', $xclpages);    
-    $xclpages = preg_replace("/\s+/","",$xclpages);      //remove any spaces
-    $xclpages = str_replace("|:","|",$xclpages);    //remove any  initial colons
-    if(preg_match("/^" . $xclpages . "$/",$ID)) return;    
-    
+    $xclpages = str_replace('::', ':.*?', $xclpages);
+    $xclpages = preg_replace("/\s+/","",$xclpages);      // remove any spaces
+    $xclpages = str_replace("|:","|",$xclpages);    // remove any initial colons
+    if(preg_match("/^" . $xclpages . "$/",$ID)) return;
+
     if($this->is_edit_user) return;
     if($ACT != 'show') return;
 
-        $this->load_data();
+        $this->load_data(); // This loads existing data, or initializes $this->pages and $this->ips to empty arrays if files don't exist.
 
         // These require_once() are moved here. If they are not classes and cannot be autoloaded, they must be retained.
         // However, they will still produce deprecated warnings.
@@ -411,52 +411,67 @@ class action_plugin_quickstats extends DokuWiki_Action_Plugin {
         @require_once("GEOIP/geoipcity.inc"); // Use @ to suppress warnings
         @require_once('db/php-local-browscap.php'); // Use @ to suppress warnings
 
-        $ip = $_SERVER['REMOTE_ADDR'];              
+        $ip = $_SERVER['REMOTE_ADDR'];
 
-         if($this->is_excluded($ip)){          
+         if($this->is_excluded($ip)){
             return;
-         }          
-            
+         }
+
         if($this->ipv6) {
-             $ip = $this->ipv6;            
+             $ip = $this->ipv6;
         }
-        
+
         $this->misc_data = unserialize(io_readFile($this->misc_data_file,false));
         if(!$this->misc_data) $this->misc_data = array();
 
         $country = $this->get_country($ip);
         if($country && is_array($country)) { // Check if $country is a valid array
-            if(!isset($this->misc_data['country'] [$country['code']])) {  
-               $this->misc_data['country'] [$country['code']] =1;            
+            if(!isset($this->misc_data['country'] [$country['code']])) {
+               $this->misc_data['country'] [$country['code']] =1;
             }
             else {
                 $this->misc_data['country'] [$country['code']] +=1;
             }
            }
-            
-          $browser =  $this->get_browser();      
-        
-           io_saveFile($this->misc_data_file,serialize($this->misc_data));          
+
+          $browser =  $this->get_browser();
+
+           io_saveFile($this->misc_data_file,serialize($this->misc_data));
            unset($this->misc_data);
-            
+
            $wiki_file = wikiFN($ID);
              if(file_exists($wiki_file)) {
-                   if(!$this->pages) {              
-                      $this->pages['site_total'] = 1;
-                      $this->pages['page'][$ID] = 1;
-                      $this->ips['uniq'] = 0;
-                  }
-                  else {
-                      $this->pages['site_total'] += 1;
-                      $this->pages['page'][$ID]  += 1;                            
-                  }
-             }    
-            
+                   // Ensure 'page' key exists within $this->pages
+                   if(!isset($this->pages['page']) || !is_array($this->pages['page'])) {
+                       $this->pages['page'] = array();
+                   }
+                   // Ensure 'site_total' exists
+                   if(!isset($this->pages['site_total'])) {
+                       $this->pages['site_total'] = 0;
+                   }
+                   // Ensure 'date' exists
+                   if(!isset($this->pages['date']) || !is_array($this->pages['date'])) {
+                       $this->pages['date'] = array();
+                   }
+
+                   $this->pages['site_total'] += 1;
+                   if(!isset($this->pages['page'][$ID])) { // Check if the specific page ID exists before incrementing
+                       $this->pages['page'][$ID] = 1;
+                   } else {
+                       $this->pages['page'][$ID] += 1;
+                   }
+             }
+
+             // Ensure 'uniq' key exists within $this->ips
+             if(!isset($this->ips['uniq'])) {
+                 $this->ips['uniq'] = 0;
+             }
+
              if(!array_key_exists($ip, $this->ips)) {
                    $this->ips[$ip] = 0;
-                   $this->ips['uniq'] = (!isset($this->ips['uniq'])) ? 1 : $this->ips['uniq'] += 1;
+                   $this->ips['uniq'] += 1; // Increment uniq count if new IP
              }
-        
+
           $this->ips[$ip] += 1;
           if($this->show_date) {
              $this->pages['date'][md5($ID)] = time();
@@ -464,19 +479,19 @@ class action_plugin_quickstats extends DokuWiki_Action_Plugin {
           $this->save_data();
           $this->pages=array();
           $this->ips=array();
-        
-        
+
+
         $this->ua = unserialize(io_readFile($this->ua_file,false));
         if(!$this->ua) $this->ua = array();
         if(!isset($this->ua['counts'])) {
                $this->ua['counts'] = array();
           }
-    
+
         if(!isset($this->ua['counts'][$browser])) {
             $this->ua['counts'][$browser]=1;
         }
         else $this->ua['counts'][$browser]++;
-        
+
         if(!isset($this->ua[$ip])) {
                $this->ua[$ip] = array(); // Initialize as empty array
                // Only add $country['code'] if $country is valid
@@ -489,9 +504,9 @@ class action_plugin_quickstats extends DokuWiki_Action_Plugin {
           }
 
 
-        if(isset($browser) && $browser !== null && !in_array($browser, $this->ua[$ip])) {          
-               $this->ua[$ip][]=$browser;    
-        }  
+        if(isset($browser) && $browser !== null && !in_array($browser, $this->ua[$ip])) {
+               $this->ua[$ip][]=$browser;
+        }
           io_saveFile($this->ua_file,serialize($this->ua));
         $this->ua = array();
 
@@ -510,13 +525,13 @@ class action_plugin_quickstats extends DokuWiki_Action_Plugin {
             array_push($this->pusers[$page_md5],$ip);
         }
         // Fix: Check that $this->pusers[$ip] should be an array, and avoid duplicate additions of ID
-        if(!in_array($ID,$this->pusers[$ip])) { 
+        if(!in_array($ID,$this->pusers[$ip])) {
             $pushed_new = true;
             array_push($this->pusers[$ip],$ID);
         }
         if($pushed_new) {
-            io_saveFile($this->page_users_file,serialize($this->pusers));  
-        }    
+            io_saveFile($this->page_users_file,serialize($this->pusers));
+        }
     }
     
    function get_browser() {
