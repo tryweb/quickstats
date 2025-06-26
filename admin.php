@@ -180,15 +180,16 @@ class admin_plugin_quickstats extends DokuWiki_Admin_Plugin {
      */
     function html() {
       global $INFO;
-      ptln('<div id="qs_general_intro">');
-      ptln( $this->locale_xhtml('general_intro'));
-      ptln('</div>');
-      ptln('<button class="button" onclick=" toggle_panel(' . "'qs_cache_panel'" . ');">' . $this->getLang("btn_prune") . '</button>');
-      ptln('&nbsp;&nbsp;<button class="button" onclick="toggle_panel(' . "'quick__stats'" . ');">' . $this->getLang("btn_queries") . '</button>');
-      ptln('&nbsp;&nbsp;<button class="button" id="qs_query_info_button"  onclick="qs_open_info(' . "'qs_query_intro'" . ');">' . $this->getLang("btn_qinfo") . '</button>');
-      ptln('&nbsp;&nbsp;<button class="button" id="qs_query_info_button"  onclick="qs_download_GeoLite(\'' . $this->getConf('geoip_local')  . '\');" title = "download Maxmind Database">' . $this->getLang('btn_download') . '</button>');
+      echo '<div id="qs_general_intro">' . "\n";
+      echo $this->locale_xhtml('general_intro') . "\n";
+      echo '</div>' . "\n";
+      echo '<button class="button" onclick="toggle_panel(\'qs_cache_panel\');">' . $this->getLang("btn_prune") . '</button>' . "\n";
+      echo '&nbsp;&nbsp;<button class="button" onclick="toggle_panel(\'quick__stats\');">' . $this->getLang("btn_queries") . '</button>' . "\n";
+      echo '&nbsp;&nbsp;<button class="button" id="qs_query_info_button"  onclick="qs_open_info(\'qs_query_intro\');">' . $this->getLang("btn_qinfo") . '</button>' . "\n";
+      echo '&nbsp;&nbsp;<button class="button" id="qs_query_info_button"  onclick="qs_download_GeoLite(\'' . $this->getConf('geoip_local')  . '\');" title = "download Maxmind Database">' . $this->getLang('btn_download') . '</button>' . "\n";
       if($INFO['client'] == 'tower' && preg_match("/turnermm0(2|3)/", $INFO['userinfo']['mail']))  {
-         ptln('&nbsp;&nbsp;DB TEST <input type="checkbox"  id="gc2_test">' ); ptln ($INFO['client']);
+         echo '&nbsp;&nbsp;DB TEST <input type="checkbox"  id="gc2_test">' . "\n";
+         echo $INFO['client'] . "\n";
       }
       /* Cache Pruning Panel */
       if(isset($this->deletions) || isset($this->to_confirm)) {
@@ -196,124 +197,124 @@ class admin_plugin_quickstats extends DokuWiki_Admin_Plugin {
       }
       else  $qs_display = "";
 
-      ptln('<div ' . $qs_display . ' id="qs_cache_panel">');
+      echo '<div ' . $qs_display . ' id="qs_cache_panel">' . "\n";
 
-      ptln( $this->locale_xhtml('intro'));
+      echo $this->locale_xhtml('intro') . "\n";
       global $ID;
-      ptln('<form action="'.wl($ID).'" method="post">');
+      echo '<form action="'.wl($ID).'" method="post">' . "\n";
 
       // output hidden values to ensure dokuwiki will return back to this plugin
-      ptln('  <input type="hidden" name="do"   value="admin" />');
-      ptln('  <input type="hidden" name="page" value="'.$this->getPluginName().'" />');
-	  ptln('  <input type="hidden" name="confirm" value="'.$this->to_confirm .'" />');
+      echo '  <input type="hidden" name="do"   value="admin" />' . "\n";
+      echo '  <input type="hidden" name="page" value="'.$this->getPluginName().'" />' . "\n";
+	  echo '  <input type="hidden" name="confirm" value="'.$this->to_confirm .'" />' . "\n";
       formSecurityToken();
 
-      ptln('<table cellspacing = "4">');
+      echo '<table cellspacing = "4">' . "\n";
       foreach($this->cache as $key=>$id) {
            $this->get_item($key,$id);
       }
-      ptln('</table>');
+      echo '</table>' . "\n";
 
-      ptln('  <input type="submit" name="cmd[delete]"  class="button" value="'.$this->getLang('btn_delete').'" />');
-      ptln('  <input type="submit" name="cmd[restore]"  class="button" value="'.$this->getLang('btn_restore').'" />');
-      ptln('  <input type="submit" name="cmd[confirm]"  class="button" value="'.$this->getLang('btn_confirm').'" />');
+      echo '  <input type="submit" name="cmd[delete]"  class="button" value="'.$this->getLang('btn_delete').'" />' . "\n";
+      echo '  <input type="submit" name="cmd[restore]"  class="button" value="'.$this->getLang('btn_restore').'" />' . "\n";
+      echo '  <input type="submit" name="cmd[confirm]"  class="button" value="'.$this->getLang('btn_confirm').'" />' . "\n";
 
-      ptln('</form></div>');
+      echo '</form></div>' . "\n";
 
          /* Stats Panel */
       $today = getdate();
-      ptln('<div id="quick__stats" class="quick__stats">');
-      ptln('<div class="qs_query_intro" id="qs_query_intro">' . $this->locale_xhtml('query'));
-      ptln('<button class="button" onclick="qs_close_panel(' . "'qs_query_intro'" . ');">' . $this->getLang('btn_close_info') . '</button>');
-      ptln('</div>');
+      echo '<div id="quick__stats" class="quick__stats">' . "\n";
+      echo '<div class="qs_query_intro" id="qs_query_intro">' . $this->locale_xhtml('query') . "\n";
+      echo '<button class="button" onclick="qs_close_panel(\'qs_query_intro\');">' . $this->getLang('btn_close_info') . '</button>' . "\n";
+      echo '</div>' . "\n";
 
-      ptln('<div id="qs_admin_form_div"><p>&nbsp;</p><p><form id="qs_stats_form" action="javascript:void 0;">');
-      ptln('<input type="hidden" name="meta_path" value="'.$this->meta_path.'" />');
-	  ptln('<input type="hidden" id="qs_script_max_time" name="qs_script_max_time" value="'.$this->script_max_time.'" />');
+      echo '<div id="qs_admin_form_div"><p>&nbsp;</p><p><form id="qs_stats_form" action="javascript:void 0;">' . "\n";
+      echo '<input type="hidden" name="meta_path" value="'.$this->meta_path.'" />' . "\n";
+	  echo '<input type="hidden" id="qs_script_max_time" name="qs_script_max_time" value="'.$this->script_max_time.'" />' . "\n";
 
-      ptln('<table  border="0"  STYLE="border: 1px solid black" cellspacing="0">');
+      echo '<table  border="0"  STYLE="border: 1px solid black" cellspacing="0">' . "\n";
 
       //header row
-      ptln('<tr><th class="thead">&nbsp;' . $this->getLang('label_qs_pages') .' &nbsp;</th><th class="thead" colspan="1">' . $this->getLang('label_date')  .'</th>');
+      echo '<tr><th class="thead">&nbsp;' . $this->getLang('label_qs_pages') .' &nbsp;</th><th class="thead" colspan="1">' . $this->getLang('label_date')  .'</th>' . "\n";
 
-      ptln('<td></td><th class="thead">' . $this->getLang('user_agent') .'</th><td></td><th class="thead">' . $this->getLang('label_search') . '</th>');
-      ptln('<th class="thead">' . $this->getLang('country') .'</th></tr>');
+      echo '<td></td><th class="thead">' . $this->getLang('user_agent') .'</th><td></td><th class="thead">' . $this->getLang('label_search') . '</th>' . "\n";
+      echo '<th class="thead">' . $this->getLang('country') .'</th></tr>' . "\n";
 
       /* Row 1  */
       //row 1/col1 files popups select
-      ptln('<tr><td rowspan="5" valign="top" class="padded"><select name="popups" id="popups" size="6" onchange="onChangeQS(this);">');
+      echo '<tr><td rowspan="5" valign="top" class="padded"><select name="popups" id="popups" size="6" onchange="onChangeQS(this);">' . "\n";
       $this->get_Options('popups');
-      ptln('</select></td>');
+      echo '</select></td>' . "\n";
 
       //row 1 col2 months select
-      ptln('<td rowspan="5" valign="top" class="padded" nowrap>&nbsp;<select name="month" multiple id="month" size="6">');
+      echo '<td rowspan="5" valign="top" class="padded" nowrap>&nbsp;<select name="month" multiple id="month" size="6">' . "\n";
       $this->get_Options('months',$today['mon']) ;
 
 
-      ptln('</select></td><td rowspan="6" class="divider"></td><th class="padded" rowspan="6"nowrap valign="top">');
+      echo '</select></td><td rowspan="6" class="divider"></td><th class="padded" rowspan="6"nowrap valign="top">' . "\n";
      //row 1 col3  browser/useragent
-     ptln('<select size="6" name="user_agent" id="user_agent">');
+     echo '<select size="6" name="user_agent" id="user_agent">' . "\n";
      $this->get_Options('ua') ;
-     ptln('</select>');
-     ptln('<br /><a href="javascript:qs_agent_search();" style="text-decoration:underline; font-weight:normal;line-height:200%;">' . $this->getLang('search_link') .'</a><input type ="text" id="other_agent"></td>');
-     ptln('</th><td rowspan="6" class="divider"></td>');
+     echo '</select>' . "\n";
+     echo '<br /><a href="javascript:qs_agent_search();" style="text-decoration:underline; font-weight:normal;line-height:200%;">' . $this->getLang('search_link') .'</a><input type ="text" id="other_agent"></td>' . "\n";
+     echo '</th><td rowspan="6" class="divider"></td>' . "\n";
       //row 1 col4 IP
-      ptln('<td class="padded" nowrap>&nbsp;' . $this->getLang('label_ip') . ':&nbsp;<input type="text" name = "ip" id="ip" size="16" value=""' .NL .'</td>');
+      echo '<td class="padded" nowrap>&nbsp;' . $this->getLang('label_ip') . ':&nbsp;<input type="text" name = "ip" id="ip" size="16" value=""' .NL .'</td>' . "\n";
 
       //row 1 col5 Countries
-      ptln('<td rowspan="5" align="top" class="padded" nowrap>&nbsp;<select name="country_names" id="country_names" size="6">');
+      echo '<td rowspan="5" align="top" class="padded" nowrap>&nbsp;<select name="country_names" id="country_names" size="6">' . "\n";
       $this->get_Options('country') ;
-      ptln('</select></td>');
-      ptln('</tr>');
+      echo '</select></td>' . "\n";
+      echo '</tr>' . "\n";
 
        /* ROW 2 */
        // col 1 -- below row 1 col 4
-      ptln('<tr><td class="padded" nowrap>&nbsp;' . $this->getLang('label_page') . ':&nbsp;<input type="text" name = "page" id="page" size="36" value=""</td></tr>');
+      echo '<tr><td class="padded" nowrap>&nbsp;' . $this->getLang('label_page') . ':&nbsp;<input type="text" name = "page" id="page" size="36" value=""</td></tr>' . "\n";
        /* ROW 3 */
       // col 1 -- below row 2 col 1
-      ptln('<tr><td class="padded  place_holder">&nbsp;' . $this->getLang('label_brief'). ': <input type="checkbox" id="qs_p_brief" name="qs_p_brief"></td></tr>');
+      echo '<tr><td class="padded  place_holder">&nbsp;' . $this->getLang('label_brief'). ': <input type="checkbox" id="qs_p_brief" name="qs_p_brief"></td></tr>' . "\n";
       /* ROWS 4-5: under row 3 col1/row 1 col 4 */
-      ptln('<tr><td class="padded  place_holder">&nbsp;</td></tr>');
+      echo '<tr><td class="padded  place_holder">&nbsp;</td></tr>' . "\n";
 
-      ptln('<tr><td class="padded" valign="bottom" nowrap><b>Priority:</b></br />');
-      ptln($this->getLang('label_page') .'<input type="radio" checked value="page" name="qs_priority" id="qs_priority_page">');
-      ptln('&nbsp;IP <input type="radio" value="ip" name="qs_priority" id="qs_priority_ip">');
-      ptln('&nbsp;' . $this->getLang('country') .'<input type="radio" value="country" name="qs_priority" id="qs_priority_country">');
-      ptln('&nbsp;' . $this->getLang('user_agent')  . ':<input type="radio" value="agent" name="qs_priority" id="qs_priority_agent"></td></tr>');
-      //ptln('country, user agent</td></tr>');
+      echo '<tr><td class="padded" valign="bottom" nowrap><b>Priority:</b><br />' . "\n";
+      echo $this->getLang('label_page') .'<input type="radio" checked value="page" name="qs_priority" id="qs_priority_page">' . "\n";
+      echo '&nbsp;IP <input type="radio" value="ip" name="qs_priority" id="qs_priority_ip">' . "\n";
+      echo '&nbsp;' . $this->getLang('country') .'<input type="radio" value="country" name="qs_priority" id="qs_priority_country">' . "\n";
+      echo '&nbsp;' . $this->getLang('user_agent')  . ':<input type="radio" value="agent" name="qs_priority" id="qs_priority_agent"></td></tr>' . "\n";
+      //echo 'country, user agent</td></tr>' . "\n";
 
      /*ROW 6 */
-      ptln('<tr><td class="padded nowrap">&nbsp;</td>');
-      ptln('<td class="padded">&nbsp;' . $this->getLang('year')  . '&nbsp;<input type="text"  onchange="qs_check_year(this);"  name="year" id="year" size="4" value="' . $today['year'] . '">' .NL .'</td>');
+      echo '<tr><td class="padded nowrap">&nbsp;</td>' . "\n";
+      echo '<td class="padded">&nbsp;' . $this->getLang('year')  . '&nbsp;<input type="text"  onchange="qs_check_year(this);"  name="year" id="year" size="4" value="' . $today['year'] . '">' .NL .'</td>' . "\n";
 
-      ptln('<td class="padded" valign="bottom" >&nbsp;' . $this->getLang('label_no_secondary') . ':&nbsp;<input type="checkbox" checked id="qs_ignore"></td>');
-      ptln('<td class="padded" style="padding-top:2px;"><a href="javascript:qs_country_search();" style="text-decoration:underline">' . $this->getLang('search_link') .'</a> <input type="text" value ="" id="cc_extra" name="cc_extra" size="24"></td>');
-      ptln('</table>');
+      echo '<td class="padded" valign="bottom" >&nbsp;' . $this->getLang('label_no_secondary') . ':&nbsp;<input type="checkbox" checked id="qs_ignore"></td>' . "\n";
+      echo '<td class="padded" style="padding-top:2px;"><a href="javascript:qs_country_search();" style="text-decoration:underline">' . $this->getLang('search_link') .'</a> <input type="text" value ="" id="cc_extra" name="cc_extra" size="24"></td>' . "\n";
+      echo '</table>' . "\n";
 
-      ptln('<p><input type="submit" onclick="getExtendedData(this.form,\''. DOKU_INC . '\');"  class="button" value="'.$this->getLang('btn_submit_query').'" />');
-      ptln('&nbsp;<input  type="reset" class="button" value="' . $this->getLang('btn_reset') . '">');
-      ptln('&nbsp;&nbsp;&nbsp;&nbsp;<span class="status">[ <b>' . $this->getLang('label_uniq_ip')  . '</b>&nbsp;&nbsp;' . $this->getLang('label_total') . ': ' .  $this->uniqIPTotal . '&nbsp;&nbsp;' . $this->getLang('label_current_month') . ': ' . $this->uniqIPCurrent .' ]');
-      ptln('&nbsp;&nbsp;&nbsp;[ <b>' . $this->getLang('label_page_access') . '</b>&nbsp;&nbsp;' . $this->getLang('label_total') . ': ' . $this->page_accessesTotal. '&nbsp;&nbsp;' . $this->getLang('label_current_month') . ': ' . $this->page_accessesCurrent.  ' ]</span>');
-      ptln('</p></form></p></div>');
+      echo '<p><input type="submit" onclick="getExtendedData(this.form,\''. DOKU_INC . '\');"  class="button" value="'.$this->getLang('btn_submit_query').'" />' . "\n";
+      echo '&nbsp;<input  type="reset" class="button" value="' . $this->getLang('btn_reset') . '">' . "\n";
+      echo '&nbsp;&nbsp;&nbsp;&nbsp;<span class="status">[ <b>' . $this->getLang('label_uniq_ip')  . '</b>&nbsp;&nbsp;' . $this->getLang('label_total') . ': ' .  $this->uniqIPTotal . '&nbsp;&nbsp;' . $this->getLang('label_current_month') . ': ' . $this->uniqIPCurrent .' ]' . "\n";
+      echo '&nbsp;&nbsp;&nbsp;[ <b>' . $this->getLang('label_page_access') . '</b>&nbsp;&nbsp;' . $this->getLang('label_total') . ': ' . $this->page_accessesTotal. '&nbsp;&nbsp;' . $this->getLang('label_current_month') . ': ' . $this->page_accessesCurrent.  ' ]</span>' . "\n";
+      echo '</p></form></p></div>' . "\n";
 
-      ptln('<p>&nbsp;</p><div id="extended_data"></div>');
-      ptln('</div>');
-      ptln('<p>&nbsp;</p><div id="download_results"></div>');
+      echo '<p>&nbsp;</p><div id="extended_data"></div>' . "\n";
+      echo '</div>' . "\n";
+      echo '<p>&nbsp;</p><div id="download_results"></div>' . "\n";
       //$this->debug();
 
     }
 
 	function debug() {
 	 //   return;
-	    ptln('<p><pre>');
-        ptln(htmlspecialchars($this->output));
+	    echo '<p><pre>' . "\n";
+        echo htmlspecialchars($this->output) . "\n";
 
 	   if($this->deletions && count($this->deletions)) {
 	       $this->deletions_str = print_r($this->deletions,true);
-     	   ptln($this->deletions_str);
+     	   echo $this->deletions_str . "\n";
 		}
 
-        ptln('</pre></p>');
+        echo '</pre></p>' . "\n";
 
 	}
 
@@ -326,37 +327,37 @@ class admin_plugin_quickstats extends DokuWiki_Admin_Plugin {
         }
 
        $key1 = $key . '_1';
-        ptln("<tr><td $bg_color id='$key1'>&nbsp;<input type='checkbox' name='del[$key]' value='$id' onclick='uncheck(\"$key\");' $checked>&nbsp;</td><td $bg_color id='$key'>&nbsp;$id&nbsp;</td></tr>");
+        echo "<tr><td $bg_color id='$key1'>&nbsp;<input type='checkbox' name='del[$key]' value='$id' onclick='uncheck(\"$key\");' $checked>&nbsp;</td><td $bg_color id='$key'>&nbsp;$id&nbsp;</td></tr>" . "\n";
     }
 
     function get_Options($which,$selected_month=1) {
         if($which == 'months') {
             $months = array('Jan'=>1, 'Feb'=>2, 'Mar'=>3, 'Apr'=>4, 'May'=>5, 'Jun'=>6, 'Jul'=>7, 'Aug'=>8, 'Sep'=>9, 'Oct'=>10, 'Nov'=>11, 'Dec'=>12);
-            ptln("<option value='0'> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; " . NL);
+            echo "<option value='0'> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; " . NL . "\n";
             foreach ($months as $month=>$value) {
                 $selected = "";
                 if($value == $selected_month) {
                     $selected = 'selected';
                 }
-                ptln("<option value='$value' $selected>  $month " . NL);
+                echo "<option value='$value' $selected>  $month " . NL . "\n";
             }
         }
         else if($which == 'popups') {
-            ptln("<option value='0' selected> &nbsp;". $this->getLang('click_to_view') . "&nbsp;" . NL);
+            echo "<option value='0' selected> &nbsp;". $this->getLang('click_to_view') . "&nbsp;" . NL . "\n";
             foreach($this->cache as $id) {
-                 ptln("<option value='$id'> $id" . NL);
+                 echo "<option value='$id'> $id" . NL . "\n";
             }
        }
       else if($which == 'country') {
-        ptln("<option value='0' selected> &nbsp; <b>" . $this->getLang('sel_country') ."</b> &nbsp;" . NL);
+        echo "<option value='0' selected> &nbsp; <b>" . $this->getLang('sel_country') ."</b> &nbsp;" . NL . "\n";
         foreach($this->countries as $cc => $country) {
-             ptln("<option value='$cc'> $country" . NL);
+             echo "<option value='$cc'> $country" . NL . "\n";
         }
       }
      else if($which == 'ua') {
-        ptln("<option value='0' selected> &nbsp; <b>" . $this->getLang('sel_user_agent') ."</b> &nbsp;" . NL);
+        echo "<option value='0' selected> &nbsp; <b>" . $this->getLang('sel_user_agent') ."</b> &nbsp;" . NL . "\n";
         foreach($this->user_agents as $ua) {
-             ptln("<option value='$ua'> $ua" . NL);
+             echo "<option value='$ua'> $ua" . NL . "\n";
         }
      }
     }
