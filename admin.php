@@ -199,6 +199,7 @@ class admin_plugin_quickstats extends DokuWiki_Admin_Plugin {
       ptln('<div ' . $qs_display . ' id="qs_cache_panel">');
 
       ptln( $this->locale_xhtml('intro'));
+      global $ID;
       ptln('<form action="'.wl($ID).'" method="post">');
 
       // output hidden values to ensure dokuwiki will return back to this plugin

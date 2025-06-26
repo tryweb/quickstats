@@ -52,7 +52,7 @@ class qs_geoliteCity {
          else $this->qs_say("GeoLiteCity url:  %s", $url);
         $gzfile = $this->tempdir  .  '/GeoLite2-City.tar.gz';    
         
-        $http = new DokuHTTPClient();
+        $http = new \dokuwiki\HTTP\DokuHTTPClient();
         $http->max_bodysize = 36777216;
         $http->timeout = 120; 
         $http->keep_alive = false; 

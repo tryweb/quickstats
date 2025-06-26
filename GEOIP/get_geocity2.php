@@ -23,7 +23,7 @@ function get_GeoLiteCity() {
     $gzfile = 'GeoLite2-City.tar.gz';    
     
 
-    $http = new DokuHTTPClient();
+    $http = new \dokuwiki\HTTP\DokuHTTPClient();
     $http->max_bodysize = 32777216;
     $http->timeout = 120; 
     $http->keep_alive = false; 

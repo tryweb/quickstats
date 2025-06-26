@@ -17,7 +17,7 @@ function get_GeoLiteCity($db) {
     $data_file = $dnld_dir . $db;
     $gzfile = $data_file .'.gz';    
    
-    $http = new DokuHTTPClient();
+    $http = new \dokuwiki\HTTP\DokuHTTPClient();
     $http->max_bodysize = 32777216;
     $http->timeout = 120; 
     $http->keep_alive = false; 
